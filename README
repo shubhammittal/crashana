@@ -2,7 +2,7 @@
 
 Crashana is the best rails exception manager.
 
-If Evan pushed a source code that ends us causing too many server exceptions, he'd be alerted.
+If Evan pushed a source code that causes too many server exceptions, he'd be alerted.
 You can re-assign and track crashes with Asana.
 
 Most of the exceptions are harmless if they occur in low proportions.
