@@ -7,8 +7,8 @@ Gem::Specification.new do |s|
   s.authors     = ["prasanna"]
   s.email       = ["myprasanna@gmail.com"]
   s.homepage    = "http://github.com/likealittle/crashana"
-  s.summary     = "Rails crash tracking with Asana."
-  s.description = "Make sure you get mailed when bad things happen to your server."
+  s.summary     = "Ruby crash tracking with Asana."
+  s.description = "Make sure you get mailed when your app breaks."
 
   s.rubyforge_project = "crashana"
 
@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  s.add_runtime_dependency "mongoid"
 end

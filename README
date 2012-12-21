@@ -1,68 +1,79 @@
-= AlertMachine
+= Crashana
 
-Get notifications if bad things happen to your server. You can easily make sure
-all processes are running, ports are open. You can also add checks for bad events
-that get run once every few minutes and get error reports to your email.
+Crashana is the best rails exception manager.
+
+If Evan pushed a source code that ends us causing too many server exceptions, he'd be alerted.
+You can re-assign and track crashes with Asana.
+
+Most of the exceptions are harmless if they occur in low proportions.
+You can mark them so, once you do a basic investigation.
+
+== Dependancies
+
+- git
+- Asana
+- rails
+- mongoid / mongodb.
+- Plays well with capistrano, but optional.
+
+== Features
+
+- Plays with Git:
+-- Figures out the author based on git commits, and assigns.
+-- You'd know the earliest version of the code causing a crash. i.e., understand git commits.
+
+- Deduping crashes: 
+-- Any smart crash system needs to strip out numbers etc and group crashes.
+
+- E-mail alerts:
+-- Will mail you if you have too many crashes. You can configure this mail to go to pagerduty or
+some such service, so that you can get woken up in the middle of the night.
+
+- Asana:
+-- Add tags to crashes and sort based on that. Helpful when crashes are being logged from iPhone clients etc.
+-- Can configure multiple projects.
+
+- Prioritize:
+-- Tells you the % of calls of a particular action that results in an error.
+If a crash happens very rarely, you probably don't care about it as much as some action,
+that fails most of the time.
+-- Tells you the number of users who are affected by the crash.
+-- Mark crashes as harmless. You can choose to be alerted once more than 2% of calls fail, for ex.
+This is extremely useful. Let's say you are crawling facebook for the user's profile pic.
+The calls to facebook can fail for various reasons, including connectivity issues. So it's OK,
+as long as, the majority of calls pass. Same with a few rare race conditions.
 
 == Usage
+
 0. Install:
 
-gem install alert_machine
+gem install crashana
 
-1. Defining a Watcher class:
+or add `crashana` to your Gemfile and `bundle install`.
 
-class MyWatcher < AlertMachine::Watcher
+1. Configure:
 
-    # Example 1: Make sure port 80 is running on server1 and server2.
-    watch_process(["server1.example.com", "server2.com"], :port => 80)
+Crashana depends on mongoid, so you need to configure it. You might have to make
+a config/mongoid.yml and edit it.
 
-    # Example 2: Make sure the two thin servers are running in server1.
-    # Check if the two ports are open, and check if the two pid files are present
-    # and pointing to valid processes.
-    watch_process("server1.example.com", :port => [3000, 3001], :pid_file =>
-        ["/tmp/thin.3000.pid", "/tmp/thin.3001.pid"])
+Configure crasha by adding a config/crashana.yml, and set your password.
+You can find a default version of the file here: <link>
 
-    # Example 3: We can also make sure there are no new crashes.
-    watch(:retries => 0) do
-        new_crashes = Crash.where(unread: false).all
-        assert new_crashes.empty?, <<MAIL
-        #{new_crashes.length} new crashes found.
-        #{ new_crashes.collect {|c| c.print }.join("\n") }
-MAIL
-    # The above code asserts that new_crashes is empty. If it's not empty
-    # an alert is triggerred with the message contents being the string
-    # that follows the assert.
-    end
+Make sure you also configure it with your Asana API credentials.
+
+2. Usage:
+
+Visit `/crashana` of your app and you must see the exceptions that your app encountered.
+We trace your rails actions and delayed jobs, automatically.
+
+To trace anything else, you should add the following lines:
+
+# Example:
+Crashana.action_scope(action: params[:action], user_id: session[:user_id],
+  project: "iPhone", tags: ["From client"]) do
+    # Serve the action to perform.
+    # Example: Rendering a thrift RPC action.
 end
 
-2. Running the watcher class:
-
-File: my_watcher_runner.rb
-require 'alert_machine'
-
-# The below line safely loads the rails environment sending out alerts
-# incase things are broken.
-AlertMachine::RailsEnvironment.bootup
-
-# Require your alert files.
-require "offline/alerts/my_watcher1.rb"
-require "offline/alerts/my_watcher2.rb"
-
-# Run the machine.
-AlertMachine.run
-
-== Configuration
-
-If you want to change the default settings, you can call:
-
-AlertMachine.config("config_file_path")
-
-before the `AlertMachine.run`
-
-You can also easily pass diff config files for development and production, if
-you are using rails.
-
-A list of all config options are available at AlertMachine::Watcher#watch and
-AlertMachine::Watcher#watch_process
 
 
