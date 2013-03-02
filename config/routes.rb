@@ -1,3 +1,3 @@
-Rails.application.routes.draw do
-  get "crashana/crash" => "crashana/crash#index"
+Crashana::Engine.routes.draw do
+  root :to => "crash#index"
 end
